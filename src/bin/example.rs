@@ -1,6 +1,5 @@
 use std::{
     fs,
-    io::Write,
     thread::{self, JoinHandle},
 };
 
@@ -10,6 +9,12 @@ use serde::Deserialize;
 struct Person {
     id: u32,
     name: String,
+}
+
+impl parallel_files::Format for Person {
+    fn format(&self) -> String {
+        format!("{},{}", self.id, self.name)
+    }
 }
 
 fn main() {
@@ -26,19 +31,7 @@ fn main() {
         let handler = thread::spawn(move || {
             if let Ok(file_str) = fs::read_to_string(file_json.clone()) {
                 let json: Vec<Person> = serde_json::from_str(&file_str).unwrap();
-                let mut file = fs::File::options()
-                    .append(true)
-                    .create(true)
-                    .open(format!("assets/example/output/{i}.csv"))
-                    .unwrap();
-
-                if i == 1 {
-                    let _ = writeln!(&mut file, "id,name");
-                }
-
-                for line in json.iter() {
-                    let _ = writeln!(&mut file, "{},{}", line.id, line.name);
-                }
+                parallel_files::write_into_csv(i, json)();
             }
         });
         thread_handler.push(handler);

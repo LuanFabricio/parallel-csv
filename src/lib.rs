@@ -11,7 +11,7 @@ where
 {
     Box::new(move || {
         let mut file = fs::File::options()
-            .append(true)
+            .write(true)
             .create(true)
             .open(format!("assets/example/output/{index}.csv"))
             .unwrap();
